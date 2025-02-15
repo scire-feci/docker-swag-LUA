@@ -1,44 +1,13 @@
-FROM ghcr.io/linuxserver/baseimage-alpine-nginx:3.21
+FROM openresty/openresty:alpine
 
-# Install build dependencies
-RUN apk add --no-cache --virtual .build-deps \
-    build-base \
-    linux-headers \
-    openssl-dev \
-    pcre-dev \
-    zlib-dev \
-    curl \
-    git
+# Install required tools
+RUN apk add --no-cache curl bash
 
-# Install LuaJIT 2.x with FFI support
-RUN git clone https://github.com/LuaJIT/LuaJIT.git && \
-    cd LuaJIT && \
-    make XCFLAGS='-DLUAJIT_ENABLE_LUA52COMPAT' && \
-    make install && \
-    ln -sf /usr/local/bin/luajit /usr/local/bin/lua && \
-    export LUAJIT_LIB=/usr/local/lib && \
-    export LUAJIT_INC=/usr/local/include/luajit-2.1
-
-# Download NGINX and the Lua module
-RUN curl -O http://nginx.org/download/nginx-1.25.2.tar.gz && \
-    curl -L -O https://github.com/openresty/stream-lua-nginx-module/archive/refs/tags/v0.0.11.tar.gz && \
-    tar -xvzf nginx-1.25.2.tar.gz && \
-    tar -xvzf v0.0.11.tar.gz && \
-    cd nginx-1.25.2 && \
-    ./configure \
-        --with-stream \
-        --with-stream_ssl_module \
-        --add-module=../stream-lua-nginx-module-0.0.11 \
-        --with-compat \
-        --with-http_ssl_module \
-        --with-http_v2_module \
-        --with-ld-opt="-Wl,-rpath,/usr/local/lib" \
-        --with-cc-opt="-I/usr/local/include/luajit-2.1" && \
-    make && make install && \
-    cd .. && rm -rf nginx-1.25.2 nginx-1.25.2.tar.gz v0.0.11.tar.gz stream-lua-nginx-module-0.0.11 luajit-2.1
-
-RUN apk del .build-deps && rm -rf /var/cache/apk/*
-
+# Copy your SWAG configs and setup
 COPY root/ /
+
+# Expose necessary ports
 EXPOSE 80 443 25565
+
+# Set volume for config
 VOLUME /config
