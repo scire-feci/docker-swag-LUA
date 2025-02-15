@@ -10,10 +10,11 @@ RUN apk add --no-cache --virtual .build-deps \
     curl \
     git
 
-# Install LuaJIT 2.x from source
+# Install LuaJIT 2.x with FFI support
 RUN git clone https://github.com/LuaJIT/LuaJIT.git && \
     cd LuaJIT && \
-    make && make install && \
+    make XCFLAGS='-DLUAJIT_ENABLE_LUA52COMPAT' && \
+    make install && \
     ln -sf /usr/local/bin/luajit /usr/local/bin/lua && \
     export LUAJIT_LIB=/usr/local/lib && \
     export LUAJIT_INC=/usr/local/include/luajit-2.1
