@@ -11,11 +11,11 @@ RUN apk add --no-cache --virtual .build-deps \
     git
 
 # Install LuaJIT 2.x from source
-RUN git clone http://luajit.org/git/luajit-2.1.git && \
-    cd luajit-2.1 && \
+RUN git clone https://github.com/LuaJIT/LuaJIT.git && \
+    cd LuaJIT && \
     make && make install && \
     ln -sf /usr/local/bin/luajit /usr/local/bin/lua && \
-    export LUAJIT_LIB=/usr/local/lib \
+    export LUAJIT_LIB=/usr/local/lib && \
     export LUAJIT_INC=/usr/local/include/luajit-2.1
 
 # Download NGINX and the Lua module
