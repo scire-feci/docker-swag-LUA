@@ -1,15 +1,20 @@
 FROM ghcr.io/linuxserver/baseimage-alpine-nginx:3.21
 
+# Install build dependencies
 RUN apk add --no-cache --virtual .build-deps \
     build-base \
     linux-headers \
-    lua5.3-dev \
-    luajit-dev \
     openssl-dev \
     pcre-dev \
     zlib-dev \
     curl \
-    && apk add --no-cache luajit
+    git
+
+# Install LuaJIT 2.x from source
+RUN git clone https://luajit.org/git/luajit-2.0.git && \
+    cd luajit-2.0 && \
+    make && make install && \
+    ln -sf /usr/local/bin/luajit /usr/local/bin/lua
 
 # Download NGINX and the Lua module
 RUN curl -O http://nginx.org/download/nginx-1.25.2.tar.gz && \
@@ -25,7 +30,7 @@ RUN curl -O http://nginx.org/download/nginx-1.25.2.tar.gz && \
         --with-http_ssl_module \
         --with-http_v2_module && \
     make && make install && \
-    cd .. && rm -rf nginx-1.25.2 nginx-1.25.2.tar.gz v0.0.11.tar.gz stream-lua-nginx-module-0.0.11
+    cd .. && rm -rf nginx-1.25.2 nginx-1.25.2.tar.gz v0.0.11.tar.gz stream-lua-nginx-module-0.0.11 luajit-2.0
 
 RUN apk del .build-deps && rm -rf /var/cache/apk/*
 
