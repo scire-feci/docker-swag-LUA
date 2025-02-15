@@ -11,10 +11,12 @@ RUN apk add --no-cache --virtual .build-deps \
     git
 
 # Install LuaJIT 2.x from source
-RUN git clone https://luajit.org/git/luajit-2.0.git && \
-    cd luajit-2.0 && \
+RUN git clone http://luajit.org/git/luajit-2.1.git && \
+    cd luajit-2.1 && \
     make && make install && \
-    ln -sf /usr/local/bin/luajit /usr/local/bin/lua
+    ln -sf /usr/local/bin/luajit /usr/local/bin/lua && \
+    export LUAJIT_LIB=/usr/local/lib \
+    export LUAJIT_INC=/usr/local/include/luajit-2.1
 
 # Download NGINX and the Lua module
 RUN curl -O http://nginx.org/download/nginx-1.25.2.tar.gz && \
@@ -28,9 +30,11 @@ RUN curl -O http://nginx.org/download/nginx-1.25.2.tar.gz && \
         --add-module=../stream-lua-nginx-module-0.0.11 \
         --with-compat \
         --with-http_ssl_module \
-        --with-http_v2_module && \
+        --with-http_v2_module \
+        --with-ld-opt="-Wl,-rpath,/usr/local/lib" \
+        --with-cc-opt="-I/usr/local/include/luajit-2.1" && \
     make && make install && \
-    cd .. && rm -rf nginx-1.25.2 nginx-1.25.2.tar.gz v0.0.11.tar.gz stream-lua-nginx-module-0.0.11 luajit-2.0
+    cd .. && rm -rf nginx-1.25.2 nginx-1.25.2.tar.gz v0.0.11.tar.gz stream-lua-nginx-module-0.0.11 luajit-2.1
 
 RUN apk del .build-deps && rm -rf /var/cache/apk/*
 
